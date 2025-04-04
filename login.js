@@ -1,46 +1,69 @@
-// login.js
-document.addEventListener('DOMContentLoaded', () => {
-    const loginForm = document.getElementById('loginForm')
-    const messageElement = document.getElementById('loginMessage')
-    const backendUrl = 'http://localhost:3000'
+document.addEventListener("DOMContentLoaded", () => {
+  const loginForm = document.getElementById("loginForm")
+  const messageElement = document.getElementById("loginMessage")
+  const backendUrl = "http://localhost:3000"
 
-    loginForm.addEventListener('submit', async (event) => {
-        event.preventDefault()
-        const username = document.getElementById('username').value
-        const password = document.getElementById('password').value
-        messageElement.textContent = ''
+  loginForm.addEventListener("submit", async (event) => {
+    event.preventDefault()
+    const username = document.getElementById("username").value
+    const password = document.getElementById("password").value
 
-        if (!username || !password) {
-            messageElement.textContent = 'Por favor llenen todos los campos.'
-            return
-        }
+    // Ocultar mensaje anterior
+    messageElement.style.display = "none"
+    messageElement.textContent = ""
 
-        try {
-            const response = await fetch(`${backendUrl}/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            })
+    if (!username || !password) {
+      messageElement.textContent = "Por favor completa todos los campos."
+      messageElement.style.display = "block"
+      return
+    }
 
-            const data = await response.json() // Esperamos JSON
+    try {
+      const response = await fetch(`${backendUrl}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      })
 
-            if (response.ok) { // Login exitoso (200 OK)
-                // Guardar el ID y username en localStorage
-                localStorage.setItem('userId', data.userId)
-                localStorage.setItem('username', username) // Guardamos el username también
+      const data = await response.json()
 
-                // Redirigir a la página de perfil
-                window.location.href = 'profile.html'
-            } else { // Error (401, 500...)
-                messageElement.textContent = `Error: ${data.error || 'Usuario o contraseña inválidos'}`
-                localStorage.removeItem('userId') // Asegurar que no quede nada si falla
-                localStorage.removeItem('username')
-            }
-        } catch (error) {
-            console.error('Error de login:', error)
-            messageElement.textContent = 'Login falló. Problema de red o del servidor. Revisen la consola.'
-            localStorage.removeItem('userId')
-            localStorage.removeItem('username')
-        }
-    })
+      if (response.ok) {
+        // Login exitoso
+        localStorage.setItem("userId", data.userId)
+        localStorage.setItem("username", username)
+
+        // Mostrar mensaje de éxito brevemente antes de redirigir
+        messageElement.textContent = "¡Inicio de sesión exitoso! Redirigiendo..."
+        messageElement.classList.remove("error")
+        messageElement.classList.add("success")
+        messageElement.style.display = "block"
+
+        // Redirigir después de un breve retraso
+        setTimeout(() => {
+          window.location.href = "profile.html"
+        }, 1000)
+      } else {
+        // Error de login
+        messageElement.textContent = `Error: ${data.error || "Usuario o contraseña inválidos"}`
+        messageElement.classList.remove("success")
+        messageElement.classList.add("error")
+        messageElement.style.display = "block"
+
+        localStorage.removeItem("userId")
+        localStorage.removeItem("username")
+      }
+    } catch (error) {
+      console.error("Error de login:", error)
+      messageElement.textContent =
+        "Error de conexión. Verifica tu conexión a internet o que el servidor esté funcionando."
+      messageElement.classList.remove("success")
+      messageElement.classList.add("error")
+      messageElement.style.display = "block"
+
+      localStorage.removeItem("userId")
+      localStorage.removeItem("username")
+    }
+  })
 })
+
+
